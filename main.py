@@ -64,26 +64,29 @@ def get_video(query):
         return False
 
 def start_stream(headline):
-    """دمج المقاطع وإضافة الساعة وشريط الأخبار والبث لليوتيوب"""
+    """دمج المقاطع وإضافة الساعة وشريط الأخبار والبث لليوتيوب - نسخة مصلحة"""
     print("--- Step 4: Starting FFmpeg Live Stream ---")
     
-    # فلتر معالجة الفيديو: دمج 3 فيديوهات + ساعة + شريط أخبار أحمر
+    # تحضير النص: تحويل أي علامات تنصيص قد تسبب مشكلة
+    clean_headline = headline.replace("'", "").replace(":", "")
+
+    # الفلتر المصلح: نربط العمليات ببعضها بترتيب تسلسلي واضح
     filter_complex = (
         "[0:v]scale=426:240,setsar=1[v0];"
         "[1:v]scale=426:240,setsar=1[v1];"
         "[2:v]scale=426:240,setsar=1[v2];"
-        "[v0][v1][v2]concat=n=3:v=1:a=0[v_out];"
-        # الساعة الرقمية (أعلى اليمين)
-        "[v_out]drawtext=text='%{localtime\\:%H\\:%M\\:%S}':fontcolor=yellow:fontsize=16:x=w-text_w-10:y=10:box=1:boxcolor=black@0.5,"
-        # شريط الأخبار العاجلة (أسفل المركز)
-        f"drawtext=text='BREAKING NEWS | {headline.upper()}':fontcolor=white:fontsize=18:box=1:boxcolor=red@0.8:"
-        f"boxborderw=10:x=(w-text_w)/2:y=h-45"
+        "[v0][v1][v2]concat=n=3:v=1:a=0[v_concated];"
+        # إضافة الساعة أولاً على الفيديو المدمج
+        "[v_concated]drawtext=text='%{localtime\\:%H\\:%M\\:%S}':fontcolor=yellow:fontsize=16:x=w-text_w-10:y=10:box=1:boxcolor=black@0.5[v_clock];"
+        # ثم إضافة شريط الأخبار فوق الفيديو اللي فيه الساعة
+        f"[v_clock]drawtext=text='BREAKING NEWS | {clean_headline.upper()}':fontcolor=white:fontsize=18:box=1:boxcolor=red@0.8:"
+        f"boxborderw=10:x=(w-text_w)/2:y=h-45[v_final]"
     )
     
     cmd = (
         f"ffmpeg -re -i part_0.mp4 -i part_1.mp4 -i part_2.mp4 -i voice.mp3 "
         f"-filter_complex \"{filter_complex}\" "
-        f"-map \"[v_out]\" -map 3:a -c:v libx264 -preset ultrafast -r 24 -g 48 "
+        f"-map \"[v_final]\" -map 3:a -c:v libx264 -preset ultrafast -r 24 -g 48 "
         f"-b:v 450k -c:a aac -b:a 64k -shortest -f flv {YOUTUBE_URL}"
     )
     
