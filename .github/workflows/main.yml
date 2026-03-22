@@ -1,0 +1,21 @@
+name: 24/7 Live Stream
+on:
+  schedule:
+    - cron: '*/30 * * * *' # يحاول التأكد من العمل كل 30 دقيقة
+  workflow_dispatch:
+
+jobs:
+  stream:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Tools
+        run: |
+          sudo apt-get update && sudo apt-get install -y ffmpeg
+          pip install requests groq edge-tts
+      - name: Run Stream
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+          STREAM_KEY: ${{ secrets.STREAM_KEY }}
+        run: python main.py
