@@ -46,9 +46,16 @@ def start_stream():
     subprocess.run(cmd, shell=True)
 
 async def run():
-    query = await get_content()
-    get_video(query)
-    start_stream()
+    while True: # حلقة لا نهائية
+        try:
+            print("جاري تجهيز محتوى جديد...")
+            query = await get_content()
+            get_video(query)
+            print("بدء البث المباشر...")
+            start_stream()
+        except Exception as e:
+            print(f"حدث خطأ: {e}.. سأحاول مرة أخرى بعد 10 ثواني")
+            await asyncio.sleep(10)
 
 if __name__ == "__main__":
     asyncio.run(run())
