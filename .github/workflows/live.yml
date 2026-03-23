@@ -24,9 +24,9 @@ jobs:
           pip install requests edge-tts asyncio
       - name: Install FFmpeg
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
-      - name: Run AI Streamer
+      - name: Run python main.py
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
-          STREAM_KEY: ${{ secrets.STREAM_KEY }}
+          TWITCH_KEY: ${{ secrets.TWITCH_KEY }}  # لازم السطر ده يكون موجود
         run: python main.py
