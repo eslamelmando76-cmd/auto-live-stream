@@ -2,7 +2,6 @@ name: 24/7 AI News Stream (Hugging Face Edition)
 
 on:
   schedule:
-    - cron: '*/30 * * * *' # إعادة فحص وتشغيل كل 30 دقيقة لضمان الاستمرارية
   workflow_dispatch: # للتشغيل اليدوي بنقرة واحدة
 
 jobs:
