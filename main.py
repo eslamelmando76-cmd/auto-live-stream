@@ -13,39 +13,40 @@ STREAM_KEY = os.getenv("STREAM_KEY")
 YOUTUBE_URL = f"rtmp://a.rtmp.youtube.com/live2/{STREAM_KEY}"
 
 # رابط موديل Llama 3 على Hugging Face
-API_URL = "https://api-inference.huggingface.co/models/meta-llama/Meta-Llama-3-8B-Instruct"
+# استبدل السطر الخاص بـ API_URL في الكود القديم بهذا السطر:
+API_URL = "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta"
 headers = {"Authorization": f"Bearer {HF_TOKEN}"}
 
 news_queue = [] # طابور الأخبار
 
-async def fetch_news_batch():
-    """طلب مجموعة أخبار في طلب واحد لتقليل الضغط على الـ API"""
-    print("--- Fetching a new batch of tech news from Hugging Face ---")
-    
-    prompt = (
-        "<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\n"
-        "Generate 5 different trending tech news stories. "
-        "Return ONLY a JSON array of 5 objects. Each object must have: "
-        "'text' (3 sentences in English), 'search_query' (2 search words), 'headline' (5 words max). "
-        "Strictly return valid JSON only.<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n"
-    )
+      async def fetch_news_batch():
+    print("--- Requesting News Batch ---")
+    # البرومبت ده مخصص لموديل Zephyr السريع جداً
+    prompt = "<|user|>\nGenerate 5 trending tech news stories. Return ONLY a JSON array of 5 objects: [{'text': '...', 'search_query': '...', 'headline': '...'}]. No extra text.<|assistant|>\n"
 
     try:
-        response = requests.post(API_URL, headers=headers, json={"inputs": prompt, "parameters": {"max_new_tokens": 1000, "return_full_text": False}})
+        response = requests.post(API_URL, headers=headers, json={
+            "inputs": prompt,
+            "parameters": {"max_new_tokens": 800}
+        }, timeout=40)
+        
         result = response.json()
-        
-        # Hugging Face يرجع النص أحياناً داخل قائمة
-        content = result[0]['generated_text'] if isinstance(result, list) else result.get('generated_text', "")
-        
-        # استخراج الـ JSON وتنظيفه
+        # تعامل مرن مع ردود Hugging Face المختلفة
+        if isinstance(result, list):
+            content = result[0].get('generated_text', "")
+        else:
+            content = result.get('generated_text', "")
+
+        # استخراج الـ JSON بذكاء
         start = content.find('[')
         end = content.rfind(']') + 1
         if start != -1 and end != -1:
-            items = json.loads(content[start:end])
-            return items
+            return json.loads(content[start:end])
+        
+        print("Empty or invalid JSON. Content was:", content[:100])
         return []
     except Exception as e:
-        print(f"HF API Error: {e}")
+        print(f"Fetch Error: {e}")
         return []
 
 async def process_segment(data):
