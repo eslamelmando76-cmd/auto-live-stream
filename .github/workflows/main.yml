@@ -1,21 +1,35 @@
-name: 24/7 Live Stream
+name: 24/7 AI News Stream (Hugging Face Edition)
+
 on:
   schedule:
-    - cron: '*/30 * * * *' # يحاول التأكد من العمل كل 30 دقيقة
-  workflow_dispatch:
+    - cron: '*/30 * * * *' # إعادة فحص وتشغيل كل 30 دقيقة لضمان الاستمرارية
+  workflow_dispatch: # للتشغيل اليدوي بنقرة واحدة
 
 jobs:
   stream:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Install Tools
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install System Dependencies
         run: |
-          sudo apt-get update && sudo apt-get install -y ffmpeg
-          pip install requests groq edge-tts
-      - name: Run Stream
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Install Python Libraries
+        run: |
+          pip install requests edge-tts asyncio
+
+      - name: Execute Live Stream
         env:
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          # تأكد من إضافة هذه المفاتيح في Settings > Secrets > Actions
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
           STREAM_KEY: ${{ secrets.STREAM_KEY }}
         run: python main.py
