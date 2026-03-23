@@ -84,11 +84,12 @@ async def process_story_stream(data):
             return
 
         # 3. بناء فلاتر FFmpeg (نظام القائمة لضمان الاستقرار)
+# استخدام r قبل النص (Raw String) لمنع خطأ الـ Escape Sequence في بايثون
         filter_complex = (
             f"concat=n={len(video_files)}:v=1:a=0[v];"
             f"[v]scale=1280:720:force_original_aspect_ratio=increase,crop=1280:720,setsar=1,"
-            f"drawtext=text='STORY\: {title_text}':fontcolor=white:fontsize=42:x=(w-text_w)/2:y=h-100:box=1:boxcolor=black@0.6,"
-            f"drawtext=text='%{{localtime\\:%H\\\\\\:%M\\\\\\:%S}}':fontcolor=yellow:fontsize=24:x=w-text_w-20:y=20:box=1:boxcolor=black@0.4[finalv]"
+            r"drawtext=text='STORY\: " + title_text + r"':fontcolor=white:fontsize=42:x=(w-text_w)/2:y=h-100:box=1:boxcolor=black@0.6,"
+            r"drawtext=text='%{localtime\:%H\\:%M\\:%S}':fontcolor=yellow:fontsize=24:x=w-text_w-20:y=20:box=1:boxcolor=black@0.4[finalv]"
         )
 
         cmd = [
