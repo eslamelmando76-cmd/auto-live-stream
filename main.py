@@ -80,22 +80,22 @@ async def process_story_stream(data):
             return
 
         # 3. بناء الفلاتر (استخدام r-string لتجنب أخطاء البايثون)
+       # تبسيط الفلتر لأقصى درجة لتجنب أخطاء GitHub Runner
         filter_complex = (
             f"concat=n={len(video_files)}:v=1:a=0[v];"
-            f"[v]scale=1280:720:force_original_aspect_ratio=increase,crop=1280:720,setsar=1,"
-            r"drawtext=text='STORY\: " + title_text + r"':fontcolor=white:fontsize=42:x=(w-text_w)/2:y=h-100:box=1:boxcolor=black@0.6,"
-            r"drawtext=text='%{localtime\:%H\\:%M\\:%S}':fontcolor=yellow:fontsize=24:x=w-text_w-20:y=20:box=1:boxcolor=black@0.4[finalv]"
+            f"[v]scale=1280:720,setsar=1,"
+            f"drawtext=text='STORY':fontcolor=white:fontsize=40:x=60:y=h-80:box=1:boxcolor=black@0.5[finalv]"
         )
 
-        # 4. أمر FFmpeg المطور للبث
         cmd = [
             "ffmpeg", "-re", "-y",
             *sum([["-i", f] for f in video_files], []),
             "-i", voice_file,
             "-filter_complex", filter_complex,
             "-map", "[finalv]", "-map", f"{len(video_files)}:a",
-            "-c:v", "libx264", "-preset", "ultrafast", "-tune", "zerolatency", "-b:v", "2500k",
-            "-c:a", "aac", "-b:a", "128k", "-shortest", "-f", "flv", YOUTUBE_URL
+            "-c:v", "libx264", "-preset", "ultrafast", "-tune", "zerolatency",
+            "-b:v", "2500k", "-c:a", "aac", "-b:a", "128k", 
+            "-shortest", "-f", "flv", YOUTUBE_URL
         ]
         
         subprocess.run(cmd)
