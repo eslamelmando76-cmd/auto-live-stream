@@ -10,8 +10,8 @@ import edge_tts
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 PEXELS_KEY = os.getenv("PEXELS_API_KEY")
 TWITCH_KEY = os.getenv("TWITCH_KEY")
-# رابط تويتش المباشر
-TWITCH_URL = f"rtmp://live.twitch.tv/app/{TWITCH_KEY}"
+# --- [تغيير الرابط ليكون أكثر استقراراً] ---
+TWITCH_URL = f"rtmp://fra05.contribute.live-video.net/app/{TWITCH_KEY}"
 
 # روابط تطبيقاتك للترويج
 MY_APPS = "Download our Apps: Luxury Estate Guide & ROI Assets on Play Store!"
@@ -90,16 +90,18 @@ async def broadcast():
             f"drawtext=text='{MY_APPS}':fontcolor=white:fontsize=16:x=w-mod(t*45\,w+tw):y=h-25:box=1:boxcolor=red@0.5[finalv]"
         )
 
-        # 4. أمر FFmpeg المستقر
-        cmd = [
-            "ffmpeg", "-re", "-y",
-            *sum([["-i", f] for f in video_files], []),
-            "-i", voice_file,
-            "-filter_complex", final_filter,
-            "-map", "[finalv]", "-map", f"{len(video_files)}:a",
-            "-c:v", "libx264", "-preset", "ultrafast", "-r", "21", "-b:v", "400k",
-            "-c:a", "aac", "-b:a", "64k", "-f", "flv", TWITCH_URL
-        ]
+        # --- [تحديث أمر FFmpeg لزيادة وقت المهلة] ---
+      cmd = [
+           "ffmpeg", "-re", "-y",
+           *sum([["-i", f] for f in video_files], []),
+           "-i", voice_file,
+           "-filter_complex", final_filter,
+           "-map", "[finalv]", "-map", f"{len(video_files)}:a",
+           "-c:v", "libx264", "-preset", "ultrafast", "-r", "21", "-b:v", "400k",
+           "-c:a", "aac", "-b:a", "64k",
+           "-f", "flv", "-flvflags", "no_duration_filesize", # إضافة هامة لاستقرار البث
+           TWITCH_URL
+         ]
 
         subprocess.run(cmd)
 
