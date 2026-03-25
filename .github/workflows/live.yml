@@ -3,7 +3,7 @@ name: 24/7 AI Story Stream
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 */2 * * *'
+    - cron: '0 */5 * * *'
 
 jobs:
   stream:
