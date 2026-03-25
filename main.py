@@ -1,87 +1,103 @@
-import os
-import requests
-import subprocess
-import asyncio
-import json
-import edge_tts
-import random
+import os, requests, subprocess, asyncio, json, edge_tts, random
 
 # --- [الإعدادات الجاهزة لليوتيوب] ---
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 PEXELS_KEY = os.getenv("PEXELS_API_KEY")
-STREAM_KEY = os.getenv("STREAM_KEY") 
+STREAM_KEY = os.getenv("STREAM_KEY")
 YOUTUBE_URL = f"rtmp://a.rtmp.youtube.com/live2/{STREAM_KEY}"
 MY_APPS = "Download our Apps: Luxury Estate Guide on Play Store!"
 
-async def fetch_story():
+# قائمة المواضيع لضمان عدم التكرار نهائياً
+TOPICS = ["Cybersecurity Mystery", "AI Rebellion", "Deep Web Horror", "Future Space Tech", "Time Travel Paradox", "Dark Web Secrets"]
+
+async def prepare_next_story(index):
+    topic = random.choice(TOPICS)
+    print(f"--- [System] Preparing next story about: {topic} ---")
+    
     url = "https://api.groq.com/openai/v1/chat/completions"
     headers = {"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"}
-    prompt = "Write a 300-word mystery story. Return JSON: {'title': '...', 'story': '...', 'queries': ['cyberpunk', 'city', 'night']}"
+    
+    # برومبت ذكي يطلب قصة وكلمات بحث للفيديو
+    prompt = f"Write a 200-word {topic} story. Return JSON: {{'title': '...', 'story': '...', 'queries': ['{topic.split()[0].lower()}']}}"
+    
     try:
+        # 1. جلب القصة من Groq
         r = requests.post(url, headers=headers, json={
             "model": "llama-3.1-8b-instant", 
             "messages": [{"role": "user", "content": prompt}],
             "response_format": {"type": "json_object"}
-        }, timeout=30)
-        return json.loads(r.json()['choices'][0]['message']['content'])
-    except: return None
-
-async def download_video(queries):
-    query = random.choice(queries) if queries else "technology"
-    p_url = f"https://api.pexels.com/videos/search?query={query}&per_page=5&orientation=landscape"
-    res = requests.get(p_url, headers={"Authorization": PEXELS_KEY}).json()
-    if 'videos' in res and len(res['videos']) > 0:
-        video = random.choice(res['videos'])
-        v_link = video['video_files'][0]['link']
-        video_file = "b0.mp4"
-        with open(video_file, "wb") as f:
-            f.write(requests.get(v_link).content)
-        return video_file
-    return None
+        }, timeout=25).json()
+        data = json.loads(r['choices'][0]['message']['content'])
+        
+        # 2. توليد الصوت (ملفات متبادلة v_0 و v_1 لمنع التقطيع)
+        v_file = f"v_{index}.mp3"
+        await edge_tts.Communicate(data['story'], "en-US-ChristopherNeural").save(v_file)
+        
+        # 3. جلب فيديو من Pexels
+        query = random.choice(data.get('queries', ['technology']))
+        p_url = f"https://api.pexels.com/videos/search?query={query}&per_page=5&orientation=landscape"
+        res = requests.get(p_url, headers={"Authorization": PEXELS_KEY}).json()
+        
+        vid_file = f"b_{index}.mp4"
+        if 'videos' in res and len(res['videos']) > 0:
+            v_link = random.choice(res['videos'])['video_files'][0]['link']
+            with open(vid_file, "wb") as f:
+                f.write(requests.get(v_link).content)
+            return vid_file, v_file, data['title']
+    except Exception as e:
+        print(f"Error in prepare_next_story: {e}")
+        return None
 
 async def broadcast():
-    print("--- [System] YouTube Live 24/7 is Starting ---")
+    print("--- [System] Starting 24/7 Professional AI Stream ---")
     if not STREAM_KEY:
         print("--- [Error] STREAM_KEY is missing! ---")
         return
 
+    current_idx = 0
+    # تجهيز أول قصة قبل البث
+    next_story = await prepare_next_story(current_idx)
+
     while True:
-        data = await fetch_story()
-        if not data: 
-            await asyncio.sleep(10)
+        if not next_story:
+            await asyncio.sleep(5)
+            next_story = await prepare_next_story(current_idx)
             continue
-
-        voice_file = "v.mp3"
-        await edge_tts.Communicate(data['story'], "en-US-ChristopherNeural").save(voice_file)
-
-        queries = data.get('queries', [])
-        video_file = await download_video(queries)
+            
+        vid, aud, title = next_story
         
-        if not video_file: continue
+        # التجهيز للقصة القادمة "في الخلفية" (بينما الحالية تذاع)
+        current_idx = 1 - current_idx
+        prepare_task = asyncio.create_task(prepare_next_story(current_idx))
 
-        # الفلتر الجديد: خلفية ضبابية + فيديو في النص + تنبيه الاشتراك
+        # الفلتر الاحترافي: خلفية ضبابية + فيديو في النص + تنبيهات اشتراك متغيرة
         filter_complex = (
             "[0:v]scale=426:240,boxblur=20:10[bg];"
             "[0:v]scale=320:180[mainv];"
             "[bg][mainv]overlay=(W-w)/2:(H-h)/2-10[vid];"
-            f"[vid]drawtext=text='🔔 PLEASE SUBSCRIBE FOR MORE STORIES':fontcolor=lime:fontsize=15:x=(w-tw)/2:y=h-60:enable='lt(mod(t\,30)\,5)',"
-            f"drawtext=text='Story\: {data['title']}':fontcolor=yellow:fontsize=14:x=(w-tw)/2:y=15:box=1:boxcolor=black@0.7,"
+            f"[vid]drawtext=text='🔔 PLEASE SUBSCRIBE FOR DAILY STORIES':fontcolor=lime:fontsize=15:x=(w-tw)/2:y=h-60:enable='lt(mod(t\,40)\,6)',"
+            f"drawtext=text='Current Story\: {title}':fontcolor=yellow:fontsize=14:x=(w-tw)/2:y=15:box=1:boxcolor=black@0.7,"
             f"drawtext=text='{MY_APPS}':fontcolor=white:fontsize=16:x=w-mod(t*45\,w+tw):y=h-30:box=1:boxcolor=red@0.6[finalv]"
         )
 
-        # السطر اللي كان فيه المشكلة (تأكد إنه واخد نفس مسافة اللي فوقه)
         cmd = [
-            "ffmpeg", "-re", "-y", "-i", video_file, "-i", voice_file,
-            "-filter_complex", filter_complex,
-            "-map", "[finalv]", "-map", "1:a",
-            "-c:v", "libx264", "-preset", "ultrafast", "-tune", "zerolatency", 
-            "-r", "20", "-g", "40", "-b:v", "400k",
+            "ffmpeg", "-re", "-y", "-i", vid, "-i", aud,
+            "-filter_complex", filter_complex, "-map", "[finalv]", "-map", "1:a",
+            "-c:v", "libx264", "-preset", "ultrafast", "-tune", "zerolatency",
+            "-b:v", "400k", "-maxrate", "450k", "-bufsize", "900k",
             "-c:a", "aac", "-b:a", "64k", "-ar", "44100",
             "-f", "flv", YOUTUBE_URL
         ]
 
-        subprocess.run(cmd)
-        await asyncio.sleep(2)
+        # تشغيل FFmpeg وانتظار انتهاء القصة الحالية
+        process = subprocess.Popen(cmd)
+        
+        # انتظار تجهيز القصة القادمة
+        next_story = await prepare_task
+        
+        # الانتظار حتى ينتهي البث الحالي ليبدأ القادم فوراً
+        process.wait()
+        await asyncio.sleep(1)
 
 if __name__ == "__main__":
     asyncio.run(broadcast())
