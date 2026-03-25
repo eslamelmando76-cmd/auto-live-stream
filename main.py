@@ -11,8 +11,9 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 PEXELS_KEY = os.getenv("PEXELS_API_KEY")
 TWITCH_KEY = os.getenv("TWITCH_KEY")
 
-# تغيير السيرفر إلى سيرفر أوروبا المستقر (فرنكفورت) لتفادي Input/Output error
-TWITCH_URL = f"rtmp://fra05.contribute.live-video.net/app/{TWITCH_KEY}"
+# السطر الجديد ليوتيوب
+YOUTUBE_KEY = os.getenv("TWITCH_KEY") # استخدم نفس السكرت القديم عشان متبدأش من الأول
+TWITCH_URL = f"rtmp://a.rtmp.youtube.com/live2/{YOUTUBE_KEY}"
 
 MY_APPS = "Download our Apps: Luxury Estate Guide on Play Store!"
 
