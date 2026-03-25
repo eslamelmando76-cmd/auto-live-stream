@@ -14,7 +14,7 @@ TWITCH_KEY = os.getenv("TWITCH_KEY")
 # السطر الجديد ليوتيوب
 # سيستخدم الكود مفتاح البث الموجود في Secrets تحت اسم TWITCH_KEY لإرسال البث ليوتيوب
 YOUTUBE_KEY = os.getenv("TWITCH_KEY") 
-TWITCH_URL = f"rtmp://a.rtmp.youtube.com/live2/{YOUTUBE_KEY}"
+TWITCH_URL = f"rtmp://b.rtmp.youtube.com/live2?backup=1{YOUTUBE_KEY}"
 
 MY_APPS = "Download our Apps: Luxury Estate Guide on Play Store!"
 
