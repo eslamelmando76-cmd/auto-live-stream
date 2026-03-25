@@ -57,18 +57,23 @@ async def broadcast():
 
         # 4. فلتر الـ 240p السحري (خفيف على السيرفر ومستقر في البث)
         # بيضيف شريط إعلاني متحرك لتطبيقاتك تحت
-        filter_complex = (
-            "[0:v]scale=426:240:force_original_aspect_ratio=decrease,pad=426:240:(ow-iw)/2:(oh-ih)/2,setsar=1[v0];"
-            f"[v0]drawtext=text='{MY_APPS}':fontcolor=white:fontsize=18:x=w-mod(t*50\,w+tw):y=h-30:box=1:boxcolor=black@0.6[finalv]"
-        )
-
-        # 5. أمر FFmpeg "الطلقة" لليوتيوب
+     # الفلتر الجديد: بيعمل خلفية ضبابية + فيديو في النص + نصوص احترافية
+       # الفلتر المعدل مع تنبيه الاشتراك
+filter_complex = (
+    "[0:v]scale=426:240,boxblur=20:10[bg];"
+    "[0:v]scale=320:180[mainv];"
+    "[bg][mainv]overlay=(W-w)/2:(H-h)/2-10[vid];"
+    # إضافة تنبيه الاشتراك باللون الأخضر الجذاب
+    f"[vid]drawtext=text='🔔 PLEASE SUBSCRIBE FOR MORE STORIES':fontcolor=lime:fontsize=15:x=(w-tw)/2:y=h-60:enable='lt(mod(t\,30)\,5)'," # يظهر لمدة 5 ثواني كل 30 ثانية
+    f"drawtext=text='Story\: {data['title']}':fontcolor=yellow:fontsize=14:x=(w-tw)/2:y=15:box=1:boxcolor=black@0.7,"
+    f"drawtext=text='{MY_APPS}':fontcolor=white:fontsize=16:x=w-mod(t*45\,w+tw):y=h-30:box=1:boxcolor=red@0.6[finalv]"
+)
         cmd = [
             "ffmpeg", "-re", "-y", "-i", video_file, "-i", voice_file,
             "-filter_complex", filter_complex,
-            "-map", "[finalv]", "-map", "1:a",
+            "-map", "[finalv]", "-map", 1:a,
             "-c:v", "libx264", "-preset", "ultrafast", "-tune", "zerolatency", 
-            "-r", "20", "-g", "40", "-b:v", "400k",
+            "-r", "20", "-g", "40", "-b:v", "450k",
             "-c:a", "aac", "-b:a", "64k", "-ar", "44100",
             "-f", "flv", YOUTUBE_URL
         ]
