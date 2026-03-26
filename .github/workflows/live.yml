@@ -33,3 +33,9 @@ jobs:
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
           STREAM_KEY: ${{ secrets.STREAM_KEY }}
         run: python main.py
+      - name: Run Stream
+        run: |
+          until python main.py; do
+           echo "Stream crashed with exit code $?. Respawning.." >&2
+          sleep 5
+          done
