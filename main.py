@@ -18,7 +18,7 @@ async def prepare_next_story(index):
     headers = {"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"}
     
     # برومبت ذكي يطلب قصة وكلمات بحث للفيديو
-    prompt = f"Write a 600-word {topic} story. Return JSON: {{'title': '...', 'story': '...', 'queries': ['{topic.split()[0].lower()}']}}"
+    prompt = f"Write a 1600-word {topic} story. Return JSON: {{'title': '...', 'story': '...', 'queries': ['{topic.split()[0].lower()}']}}"
     
     try:
         # 1. جلب القصة من Groq
@@ -43,6 +43,10 @@ async def prepare_next_story(index):
             v_link = random.choice(res['videos'])['video_files'][0]['link']
             with open(vid_file, "wb") as f:
                 f.write(requests.get(v_link).content)
+                   short_vid = f"short_{index}.mp4"
+                    subprocess.run([
+        "ffmpeg", "-i", vid_file, "-t", "30", "-c", "copy", short_vid
+   
             return vid_file, v_file, data['title']
     except Exception as e:
         print(f"Error in prepare_next_story: {e}")
@@ -76,6 +80,7 @@ async def broadcast():
              "ffmpeg", "-stream_loop", "-1", "-re", "-y", "-i", vid,
              "-stream_loop", "-1", "-i", aud,
              "-c:v", "libx264", "-preset", "ultrafast", "-tune", "zerolatency",
+             "-r", "24", 
              "-b:v", "400k", "-maxrate", "450k", "-bufsize", "1200k",
              "-c:a", "aac", "-b:a", "64k", "-ar", "44100",
              "-shortest",
@@ -89,9 +94,7 @@ async def broadcast():
         # انتظار تجهيز القصة القادمة
         next_story = await prepare_task
         
-        # الانتظار حتى ينتهي البث الحالي ليبدأ القادم فوراً
-        process.wait()
-        await asyncio.sleep(1)
+
 
 if __name__ == "__main__":
     asyncio.run(broadcast())
