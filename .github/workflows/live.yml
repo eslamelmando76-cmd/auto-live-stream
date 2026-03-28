@@ -1,9 +1,10 @@
 name: 24/7 AI Story Stream
 
 on:
-  workflow_dispatch:
   schedule:
-    - cron: ' * * * *'
+    # سيقوم بالنشر كل ساعتين بالظبط (12 حلقة في اليوم)
+    - cron: '0 * * * *'
+  workflow_dispatch:
 
 jobs:
   stream:
