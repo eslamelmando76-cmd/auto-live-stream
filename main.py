@@ -70,8 +70,7 @@ async def broadcast():
         current_idx = 1 - current_idx
         prepare_task = asyncio.create_task(prepare_next_story(current_idx))
 
-        # الفلتر الاحترافي: خلفية ضبابية + فيديو في النص + تنبيهات اشتراك متغيرة
-      )
+     
 
         cmd = [
             "ffmpeg", "-re", "-y", "-i", vid, "-i", aud,
