@@ -43,8 +43,8 @@ async def prepare_next_story(index):
             v_link = random.choice(res['videos'])['video_files'][0]['link']
             with open(vid_file, "wb") as f:
                 f.write(requests.get(v_link).content)
-                   short_vid = f"short_{index}.mp4"
-                    subprocess.run([
+                short_vid = f"short_{index}.mp4"
+                subprocess.run([
         "ffmpeg", "-i", vid_file, "-t", "30", "-c", "copy", short_vid
    
             return vid_file, v_file, data['title']
