@@ -8,7 +8,7 @@ YOUTUBE_URL = f"rtmp://a.rtmp.youtube.com/live2/{STREAM_KEY}"
 MY_APPS = "Download our Apps: Luxury Estate Guide on Play Store!"
 
 # قائمة المواضيع لضمان عدم التكرار نهائياً
-TOPICS = ["Cybersecurity Mystery", "AI Rebellion", "Deep Web Horror", "Future Space Tech", "Time Travel Paradox", "Dark Web Secrets +18"]
+TOPICS = ["Cybersecurity Mystery", "AI Rebellion", "Deep Web Horror love", "love Future Space Tech", "love Time Travel Paradox", "Dark Web Secrets love"]
 
 async def prepare_next_story(index):
     topic = random.choice(TOPICS)
