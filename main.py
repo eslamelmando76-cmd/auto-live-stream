@@ -73,11 +73,14 @@ async def broadcast():
      
 
         cmd = [
-            "ffmpeg", "-re", "-y", "-i", vid, "-i", aud,
-            "-c:v", "libx264", "-preset", "ultrafast", "-tune", "zerolatency",
-            "-b:v", "400k", "-maxrate", "450k", "-bufsize", "900k",
-            "-c:a", "aac", "-b:a", "64k", "-ar", "44100",
-            "-f", "flv", YOUTUBE_URL
+             "ffmpeg", "-stream_loop", "-1", "-re", "-y", "-i", vid,
+             "-stream_loop", "-1", "-i", aud,
+             "-c:v", "libx264", "-preset", "ultrafast", "-tune", "zerolatency",
+             "-b:v", "400k", "-maxrate", "450k", "-bufsize", "1200k",
+             "-c:a", "aac", "-b:a", "64k", "-ar", "44100",
+             "-shortest",
+             "-reconnect", "1", "-reconnect_streamed", "1", "-reconnect_delay_max", "2",
+             "-f", "flv", YOUTUBE_URL
         ]
 
         # تشغيل FFmpeg وانتظار انتهاء القصة الحالية
