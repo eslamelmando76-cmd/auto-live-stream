@@ -47,7 +47,7 @@ async def prepare_next_story(index):
                 subprocess.run([
         "ffmpeg", "-i", vid_file, "-t", "30", "-c", "copy", short_vid
    
-            return vid_file, v_file, data['title']
+           return vid_file, v_file, data['title']
     except Exception as e:
         print(f"Error in prepare_next_story: {e}")
         return None
