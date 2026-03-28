@@ -8,7 +8,7 @@ YOUTUBE_URL = f"rtmp://a.rtmp.youtube.com/live2/{STREAM_KEY}"
 MY_APPS = "Download our Apps: Luxury Estate Guide on Play Store!"
 
 # قائمة المواضيع لضمان عدم التكرار نهائياً
-TOPICS = ["Cybersecurity Mystery", "AI Rebellion", "Deep Web Horror", "Future Space Tech", "Time Travel Paradox", "Dark Web Secrets"]
+TOPICS = ["Cybersecurity Mystery", "AI Rebellion", "Deep Web Horror", "Future Space Tech", "Time Travel Paradox", "Dark Web Secrets +18"]
 
 async def prepare_next_story(index):
     topic = random.choice(TOPICS)
@@ -18,7 +18,7 @@ async def prepare_next_story(index):
     headers = {"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"}
     
     # برومبت ذكي يطلب قصة وكلمات بحث للفيديو
-    prompt = f"Write a 200-word {topic} story. Return JSON: {{'title': '...', 'story': '...', 'queries': ['{topic.split()[0].lower()}']}}"
+    prompt = f"Write a 800-word {topic} story. Return JSON: {{'title': '...', 'story': '...', 'queries': ['{topic.split()[0].lower()}']}}"
     
     try:
         # 1. جلب القصة من Groq
@@ -71,16 +71,10 @@ async def broadcast():
         prepare_task = asyncio.create_task(prepare_next_story(current_idx))
 
         # الفلتر الاحترافي: خلفية ضبابية + فيديو في النص + تنبيهات اشتراك متغيرة
-        filter_complex = (
-            "[0:v]scale=426:240,boxblur=20:10[bg];"
-            "[0:v]scale=320:180[mainv];"
-            "[bg][mainv]overlay=(W-w)/2:(H-h)/2-10[vid];"
-            f"drawtext=text='Current Story\: {title}':fontcolor=yellow:fontsize=14:x=(w-tw)/2:y=15:box=1:boxcolor=black@0.7,"
-        )
+      )
 
         cmd = [
             "ffmpeg", "-re", "-y", "-i", vid, "-i", aud,
-            "-filter_complex", filter_complex, "-map", "[finalv]", "-map", "1:a",
             "-c:v", "libx264", "-preset", "ultrafast", "-tune", "zerolatency",
             "-b:v", "400k", "-maxrate", "450k", "-bufsize", "900k",
             "-c:a", "aac", "-b:a", "64k", "-ar", "44100",
