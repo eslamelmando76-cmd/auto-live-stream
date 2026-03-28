@@ -18,12 +18,12 @@ async def prepare_next_story(index):
     headers = {"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"}
     
     # برومبت ذكي يطلب قصة وكلمات بحث للفيديو
-    prompt = f"Write a 800-word {topic} story. Return JSON: {{'title': '...', 'story': '...', 'queries': ['{topic.split()[0].lower()}']}}"
+    prompt = f"Write a 600-word {topic} story. Return JSON: {{'title': '...', 'story': '...', 'queries': ['{topic.split()[0].lower()}']}}"
     
     try:
         # 1. جلب القصة من Groq
         r = requests.post(url, headers=headers, json={
-            "model": "llama-3.1-8b-instant", 
+            "model": "llama-3.3-70b-versatile", 
             "messages": [{"role": "user", "content": prompt}],
             "response_format": {"type": "json_object"}
         }, timeout=25).json()
