@@ -75,9 +75,7 @@ async def broadcast():
             "[0:v]scale=426:240,boxblur=20:10[bg];"
             "[0:v]scale=320:180[mainv];"
             "[bg][mainv]overlay=(W-w)/2:(H-h)/2-10[vid];"
-            f"[vid]drawtext=text='🔔 PLEASE SUBSCRIBE FOR DAILY STORIES':fontcolor=lime:fontsize=15:x=(w-tw)/2:y=h-60:enable='lt(mod(t\,40)\,6)',"
             f"drawtext=text='Current Story\: {title}':fontcolor=yellow:fontsize=14:x=(w-tw)/2:y=15:box=1:boxcolor=black@0.7,"
-            f"drawtext=text='{MY_APPS}':fontcolor=white:fontsize=16:x=w-mod(t*45\,w+tw):y=h-30:box=1:boxcolor=red@0.6[finalv]"
         )
 
         cmd = [
